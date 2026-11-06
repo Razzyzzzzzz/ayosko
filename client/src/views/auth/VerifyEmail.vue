@@ -28,8 +28,9 @@ let timer;
 const code = computed(() => digits.value.join(''));
 const ready = computed(() => code.value.length === LEN);
 
+// text-[1.25rem] (20px) para iwas auto-zoom sa iOS; h-12 sa maliit na phone, h-14 mula sm pataas
 const boxClass =
-  'h-12 min-w-0 max-w-[3.25rem] flex-1 rounded-xl border bg-white text-center text-xl font-semibold tabular-nums text-slate-900 outline-none transition focus:border-indigo-600 focus:ring-2 focus:ring-indigo-200 disabled:opacity-60';
+  'aspect-[4/5] h-auto min-w-0 max-w-[3.5rem] flex-1 rounded-xl border bg-white p-0 text-center text-xl font-semibold tabular-nums text-slate-900 outline-none transition focus:border-indigo-600 focus:ring-2 focus:ring-indigo-200 disabled:opacity-60 sm:text-2xl';
 
 function focusBox(i) {
   nextTick(() => boxes.value[i]?.focus());
@@ -137,7 +138,8 @@ onMounted(() => {
   } else {
     startCooldown();
   }
-  focusBox(0);
+  // Sa phone, huwag i-autofocus: tatakpan ng keyboard ang form. Desktop lang.
+  if (window.matchMedia('(pointer: fine)').matches) focusBox(0);
 });
 onBeforeUnmount(() => clearInterval(timer));
 </script>
@@ -145,20 +147,20 @@ onBeforeUnmount(() => clearInterval(timer));
 <template>
   <AuthShell title="Enter your code">
     <div class="text-center">
-      <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-indigo-50">
-        <MailCheck class="h-7 w-7 text-indigo-600" aria-hidden="true" />
+      <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-indigo-50 sm:h-14 sm:w-14">
+        <MailCheck class="h-6 w-6 text-indigo-600 sm:h-7 sm:w-7" aria-hidden="true" />
       </div>
-      <p class="mt-4 text-sm text-slate-600">
+      <p class="mt-3 text-sm leading-relaxed text-slate-600 sm:mt-4">
         We sent a {{ LEN }}-digit code to
         <b v-if="email" class="break-all text-slate-900">{{ email }}</b><span v-else>your email</span>.
         Check your spam folder if you don't see it.
       </p>
     </div>
 
-    <form class="mt-6 space-y-4" novalidate @submit.prevent="verify">
+    <form class="mt-5 space-y-4 sm:mt-6" novalidate @submit.prevent="verify">
       <div role="group" aria-labelledby="otp-label">
         <span id="otp-label" class="sr-only">Verification code</span>
-        <div class="flex justify-center gap-2" :class="{ 'otp-shake': shake }">
+        <div class="flex justify-center gap-1.5 min-[380px]:gap-2" :class="{ 'otp-shake': shake }">
           <input
             v-for="(d, i) in digits"
             :key="i"
@@ -166,6 +168,9 @@ onBeforeUnmount(() => clearInterval(timer));
             :value="d"
             type="text"
             inputmode="numeric"
+            pattern="[0-9]*"
+            maxlength="6"
+            enterkeyhint="done"
             :autocomplete="i === 0 ? 'one-time-code' : 'off'"
             :aria-label="`Digit ${i + 1} of ${LEN}`"
             :aria-invalid="!!error"
@@ -181,17 +186,17 @@ onBeforeUnmount(() => clearInterval(timer));
 
       <p v-if="error" class="rounded-lg bg-red-50 p-3 text-center text-sm text-red-700" role="alert">{{ error }}</p>
 
-      <button class="btn-primary w-full" :disabled="!ready || verifying">
+      <button class="btn-primary min-h-11 w-full" :disabled="!ready || verifying">
         {{ verifying ? 'Verifying…' : 'Verify email' }}
       </button>
     </form>
 
-    <div class="mt-5 space-y-2 text-center text-sm text-slate-600">
-      <p v-if="wait > 0">Need a new code? You can request one in {{ wait }}s.</p>
+    <div class="mt-4 space-y-1 text-center text-sm text-slate-600 sm:mt-5">
+      <p v-if="wait > 0" class="py-2">Need a new code? You can request one in {{ wait }}s.</p>
       <button
         v-else
         type="button"
-        class="font-medium text-indigo-600 hover:underline disabled:opacity-60"
+        class="min-h-11 px-2 font-medium text-indigo-600 hover:underline disabled:opacity-60"
         :disabled="sending"
         @click="resend"
       >
@@ -199,13 +204,13 @@ onBeforeUnmount(() => clearInterval(timer));
       </button>
       <p>
         Wrong email?
-        <RouterLink to="/register" class="font-medium text-indigo-600 hover:underline">Sign up again</RouterLink>
+        <RouterLink to="/register" class="inline-block py-2 font-medium text-indigo-600 hover:underline">Sign up again</RouterLink>
       </p>
     </div>
 
     <template #footer>
       Already verified?
-      <RouterLink to="/login" class="font-medium text-indigo-600 hover:underline">Log in</RouterLink>
+      <RouterLink to="/login" class="inline-block py-2 font-medium text-indigo-600 hover:underline">Log in</RouterLink>
     </template>
   </AuthShell>
 </template>

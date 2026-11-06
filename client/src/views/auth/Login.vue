@@ -76,21 +76,21 @@ async function submit() {
 
 <template>
   <AuthShell title="Welcome back" subtitle="Log in to your AyosKo account.">
-    <p v-if="notice" :class="['mb-4 rounded-lg p-3 text-sm', NOTICE_TONES[notice.tone]]" role="status">{{ notice.text }}</p>
+    <p v-if="notice" :class="['mb-4 rounded-lg p-3 text-sm leading-relaxed', NOTICE_TONES[notice.tone]]" role="status">{{ notice.text }}</p>
 
     <form class="space-y-4" novalidate @submit.prevent="submit">
       <div>
         <label class="label" for="email">Email</label>
         <input id="email" ref="emailEl" v-model="email" type="email" inputmode="email" autocomplete="username"
-          autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="you@example.com"
+          autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next" placeholder="you@example.com"
           class="input" :class="emailError && errCls" :aria-invalid="!!emailError" :aria-describedby="emailError ? 'email-err' : undefined" />
         <p v-if="emailError" id="email-err" class="mt-1 text-xs text-red-600">{{ emailError }}</p>
       </div>
 
       <div>
-        <div class="mb-1 flex items-center justify-between gap-3">
+        <div class="mb-1 flex flex-wrap items-center justify-between gap-x-3">
           <label class="text-sm font-medium text-slate-700" for="pw">Password</label>
-          <RouterLink to="/forgot-password" class="text-sm font-medium text-indigo-600 hover:underline">Forgot password?</RouterLink>
+          <RouterLink to="/forgot-password" class="-my-1 inline-block py-1 text-sm font-medium text-indigo-600 hover:underline">Forgot password?</RouterLink>
         </div>
         <div ref="pwWrap" @keydown="checkCaps" @keyup="checkCaps">
           <PasswordInput id="pw" v-model="password" autocomplete="current-password" placeholder="Your password"
@@ -102,15 +102,15 @@ async function submit() {
 
       <div v-if="formError" class="rounded-lg bg-red-50 p-3 text-sm text-red-700" role="alert">
         {{ formError }}
-        <RouterLink v-if="credsError" to="/forgot-password" class="mt-1 block font-medium underline">Reset your password</RouterLink>
+        <RouterLink v-if="credsError" to="/forgot-password" class="mt-1 block py-1 font-medium underline">Reset your password</RouterLink>
       </div>
 
-      <button class="btn-primary w-full" :disabled="loading">
+      <button class="btn-primary flex min-h-11 w-full items-center justify-center gap-2" :disabled="loading">
         <span v-if="loading" class="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden="true" />
         {{ loading ? 'Logging in…' : 'Log in' }}
       </button>
     </form>
 
-    <template #footer>No account? <RouterLink to="/register" class="font-medium text-indigo-600 hover:underline">Sign up</RouterLink></template>
+    <template #footer>No account? <RouterLink to="/register" class="inline-block py-2 font-medium text-indigo-600 hover:underline">Sign up</RouterLink></template>
   </AuthShell>
 </template>

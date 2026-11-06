@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import { ChevronLeft, ChevronRight } from 'lucide-vue-next';
+import { ChevronLeft, ChevronRight, CalendarCheck, Plus } from 'lucide-vue-next';
 import { api } from '../lib/api';
 import { ymd, todayStr, money } from '../lib/format';
 import { useToast } from '../stores/toast';
@@ -52,12 +52,16 @@ const byDate = computed(() => {
   return m;
 });
 const on = (d) => byDate.value.get(d) || [];
+const selectedItems = computed(() => on(selected.value));
 
 function cellLabel(d) {
   const n = on(d).length;
   const long = new Date(d + 'T00:00:00').toLocaleDateString('en-PH', { weekday: 'long', month: 'long', day: 'numeric' });
   return n ? `${long}, ${n} item${n > 1 ? 's' : ''}` : long;
 }
+
+// Naka-highlight lang ang "Today" button kapag wala ka na sa kasalukuyang buwan/araw
+const atToday = computed(() => selected.value === today && cursor.value.getMonth() === new Date().getMonth() && cursor.value.getFullYear() === new Date().getFullYear());
 
 const move = (n) => (cursor.value = new Date(cursor.value.getFullYear(), cursor.value.getMonth() + n, 1));
 const goToday = () => { cursor.value = new Date(new Date().getFullYear(), new Date().getMonth(), 1); selected.value = today; };
@@ -75,32 +79,33 @@ const onTouchEnd = (e) => {
   <div>
     <div class="mb-4 flex items-center justify-between gap-3">
       <h1 class="text-2xl font-bold">Calendar</h1>
-      <button class="btn-ghost" @click="goToday">Today</button>
+      <button :class="atToday ? 'btn-ghost' : 'btn-soft'" @click="goToday">Today</button>
     </div>
 
     <div class="grid gap-4 lg:grid-cols-3 lg:gap-6">
       <div class="card p-3 sm:p-5 lg:col-span-2" @touchstart.passive="onTouchStart" @touchend.passive="onTouchEnd">
+        <!-- Buwan: malalaking button para madaling pindutin -->
         <div class="mb-3 flex items-center justify-between">
-          <button class="btn-ghost h-10 w-10 !p-0" aria-label="Previous month" @click="move(-1)"><ChevronLeft class="h-5 w-5" /></button>
-          <h2 class="font-semibold" aria-live="polite">{{ label }}</h2>
-          <button class="btn-ghost h-10 w-10 !p-0" aria-label="Next month" @click="move(1)"><ChevronRight class="h-5 w-5" /></button>
+          <button class="btn-ghost btn-icon" aria-label="Previous month" @click="move(-1)"><ChevronLeft class="h-5 w-5" /></button>
+          <h2 class="text-lg font-semibold" aria-live="polite">{{ label }}</h2>
+          <button class="btn-ghost btn-icon" aria-label="Next month" @click="move(1)"><ChevronRight class="h-5 w-5" /></button>
         </div>
 
-        <div class="mb-1 grid grid-cols-7 text-center text-xs font-medium text-slate-500" aria-hidden="true">
-          <span v-for="w in WEEK" :key="w"><span class="sm:hidden">{{ w[0] }}</span><span class="hidden sm:inline">{{ w }}</span></span>
+        <div class="mb-1 grid grid-cols-7 text-center text-xs font-semibold uppercase tracking-wide text-slate-400" aria-hidden="true">
+          <span v-for="(w, wi) in WEEK" :key="w" :class="wi === 0 && 'text-rose-400'"><span class="sm:hidden">{{ w[0] }}</span><span class="hidden sm:inline">{{ w }}</span></span>
         </div>
-        <div class="grid grid-cols-7 gap-1">
+        <div class="grid grid-cols-7 gap-y-1 sm:gap-1">
           <template v-for="(d, i) in days" :key="i">
             <span v-if="!d" />
             <button v-else type="button"
-              class="flex h-12 flex-col items-center justify-start gap-1 rounded-xl pt-1.5 text-sm transition sm:h-24 sm:pt-2"
-              :class="d === selected ? 'bg-indigo-50 ring-1 ring-indigo-300' : 'hover:bg-slate-50'"
+              class="mx-auto flex h-[3.25rem] w-full max-w-[3.5rem] flex-col items-center justify-start gap-1 rounded-xl pt-1.5 text-sm transition active:scale-95 sm:mx-0 sm:h-24 sm:max-w-none sm:pt-2"
+              :class="d === selected ? 'bg-indigo-50 ring-2 ring-indigo-400' : 'hover:bg-slate-50'"
               :aria-label="cellLabel(d)" :aria-pressed="d === selected" :aria-current="d === today ? 'date' : undefined"
               @click="selected = d">
-              <span class="flex h-7 w-7 items-center justify-center rounded-full"
-                :class="d === today ? 'bg-indigo-600 font-semibold text-white' : d === selected ? 'font-semibold text-indigo-800' : 'text-slate-700'">{{ Number(d.slice(8)) }}</span>
+              <span class="flex h-8 w-8 items-center justify-center rounded-full"
+                :class="d === today ? 'bg-indigo-600 font-semibold text-white shadow-sm shadow-indigo-600/30' : d === selected ? 'font-semibold text-indigo-800' : 'text-slate-700'">{{ Number(d.slice(8)) }}</span>
               <!-- Mobile: tuldok -->
-              <span class="flex gap-0.5 sm:hidden"><i v-for="(x, j) in on(d).slice(0, 3)" :key="j" :class="['h-1.5 w-1.5 rounded-full', x.dot]" /></span>
+              <span class="flex h-1.5 gap-0.5 sm:hidden"><i v-for="(x, j) in on(d).slice(0, 3)" :key="j" :class="['h-1.5 w-1.5 rounded-full', x.dot]" /></span>
               <!-- Tablet/desktop: maikling label -->
               <span class="hidden w-full flex-col gap-0.5 px-0.5 sm:flex">
                 <span v-for="(x, j) in on(d).slice(0, 2)" :key="j" :class="['truncate rounded px-1 text-left text-[11px] leading-4', x.chip, x.done && 'line-through opacity-60']">{{ x.label }}</span>
@@ -110,29 +115,44 @@ const onTouchEnd = (e) => {
           </template>
         </div>
 
-        <ul class="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500" aria-label="Legend">
+        <ul class="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-1 border-t border-slate-100 pt-3 text-xs text-slate-500 sm:justify-start" aria-label="Legend">
           <li v-for="(k, name) in KINDS" :key="name" class="flex items-center gap-1.5"><i :class="['h-2 w-2 rounded-full', k.dot]" />{{ name }}</li>
         </ul>
       </div>
 
+      <!-- Mga nakatakda sa napiling araw -->
       <section class="card" aria-live="polite">
-        <h2 class="mb-3 font-semibold">{{ selectedLabel }}</h2>
-        <div v-if="loading" class="space-y-2" aria-busy="true">
-          <div class="h-14 animate-pulse rounded-xl bg-slate-100" /><div class="h-14 animate-pulse rounded-xl bg-slate-100" />
+        <div class="mb-3 flex items-baseline justify-between gap-2">
+          <h2 class="font-semibold">{{ selectedLabel }}</h2>
+          <span v-if="!loading && selectedItems.length" class="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">{{ selectedItems.length }}</span>
         </div>
-        <p v-else-if="!on(selected).length" class="text-sm text-slate-500">Nothing planned for this day.</p>
+
+        <div v-if="loading" class="space-y-2" aria-busy="true">
+          <div class="h-16 animate-pulse rounded-xl bg-slate-100" /><div class="h-16 animate-pulse rounded-xl bg-slate-100" />
+        </div>
+
+        <div v-else-if="!selectedItems.length" class="flex flex-col items-center py-6 text-center">
+          <span class="grid h-12 w-12 place-items-center rounded-full bg-indigo-50 text-indigo-600"><CalendarCheck class="h-6 w-6" aria-hidden="true" /></span>
+          <p class="mt-3 font-medium text-slate-800">Nothing planned</p>
+          <p class="mt-0.5 text-sm text-slate-500">This day is free.</p>
+        </div>
+
         <ul v-else class="space-y-2">
-          <li v-for="(x, i) in on(selected)" :key="i">
-            <RouterLink :to="x.to" class="flex items-start gap-3 rounded-xl border border-slate-200 p-3 transition hover:bg-slate-50" :class="{ 'opacity-50': x.done }">
+          <li v-for="(x, i) in selectedItems" :key="i">
+            <RouterLink :to="x.to" class="flex min-h-[3.5rem] items-start gap-3 rounded-xl border border-slate-200 p-3 transition hover:bg-slate-50 active:bg-slate-100" :class="{ 'opacity-50': x.done }">
               <i :class="['mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full', x.dot]" />
               <span class="min-w-0 flex-1">
                 <span class="block text-xs text-slate-500">{{ x.kind }}<template v-if="x.meta"> · {{ x.meta }}</template></span>
                 <span class="block break-words font-medium" :class="{ 'line-through': x.done }">{{ x.label }}</span>
               </span>
+              <ChevronRight class="mt-1 h-4 w-4 shrink-0 text-slate-300" aria-hidden="true" />
             </RouterLink>
           </li>
         </ul>
-        <RouterLink :to="{ path: '/app/appointments', query: { new: 1 } }" class="btn-ghost mt-4 w-full">Add appointment</RouterLink>
+
+        <RouterLink :to="{ path: '/app/appointments', query: { new: 1 } }" class="btn-soft mt-4 w-full">
+          <Plus class="h-4 w-4" aria-hidden="true" /> Add appointment
+        </RouterLink>
       </section>
     </div>
   </div>

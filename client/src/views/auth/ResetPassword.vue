@@ -25,14 +25,14 @@ async function submit() {
 <template>
   <AuthShell title="Set a new password">
     <div v-if="!auth.session" class="space-y-3 text-sm">
-      <p class="rounded-lg bg-amber-50 p-3 text-amber-800">This reset link is invalid or has expired.</p>
-      <RouterLink to="/forgot-password" class="btn-primary w-full">Request a new link</RouterLink>
+      <p class="rounded-lg bg-amber-50 p-3 leading-relaxed text-amber-800">This reset link is invalid or has expired.</p>
+      <RouterLink to="/forgot-password" class="btn-primary flex min-h-11 w-full items-center justify-center">Request a new link</RouterLink>
     </div>
     <form v-else class="space-y-4" novalidate @submit.prevent="submit">
       <div><label class="label" for="a">New password</label><PasswordInput id="a" v-model="pw" autocomplete="new-password" /></div>
       <div><label class="label" for="b">Confirm password</label><PasswordInput id="b" v-model="confirm" autocomplete="new-password" /></div>
       <p v-if="error" class="rounded-lg bg-red-50 p-3 text-sm text-red-700" role="alert">{{ error }}</p>
-      <button class="btn-primary w-full" :disabled="loading">{{ loading ? 'Saving…' : 'Update password' }}</button>
+      <button class="btn-primary min-h-11 w-full" :disabled="loading">{{ loading ? 'Saving…' : 'Update password' }}</button>
     </form>
   </AuthShell>
 </template>
