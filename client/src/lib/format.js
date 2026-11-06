@@ -1,0 +1,10 @@
+const pad = (n) => String(n).padStart(2, '0');
+export const todayStr = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
+export const ymd = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+export const fmtDate = (s) => (s ? new Date(`${s}T00:00:00`).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' }) : '—');
+export const fmtDateTime = (s) => (s ? new Date(s).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '—');
+export const money = (n) => `₱${Number(n || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+export const toLocalInput = (iso) => { if (!iso) return ''; const d = new Date(iso); return `${ymd(d)}T${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+export const fromLocalInput = (v) => (v ? new Date(v).toISOString() : null);
+export const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1).replace(/_/g, ' ');
+export const moneySigned = (n) => (n < 0 ? `−${money(-n)}` : money(n));

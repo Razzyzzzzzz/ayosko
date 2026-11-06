@@ -1,0 +1,3 @@
+-- DEV ONLY. Replace the UUID with a real auth.users id, then run manually.
+-- insert into tasks (user_id, title, category, priority, due_date)
+-- values ('00000000-0000-0000-0000-000000000000', 'Bayaran ang internet', 'bills', 'high', current_date + 5);
